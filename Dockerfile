@@ -23,12 +23,17 @@ COPY . .
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
-EXPOSE 80
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV FLASK_APP=run.py
+ENV PORT=3000
+
+# Expose port (EasyPanel typically uses 3000)
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:80/teste || exit 1
+  CMD curl -f http://localhost:3000/teste || exit 1
 
-# Run the application
-CMD ["python", "run.py"]
+# Run the application with Gunicorn for production
+CMD ["gunicorn", "--bind", "0.0.0.0:3000", "--workers", "4", "--timeout", "120", "run:app"]
